@@ -18,7 +18,8 @@ Outbound Interface    FastEthernet0/0
 """
 
 ospf_route = "      10.0.24.0/24 [110/41] via 10.0.13.3, 3d18h, FastEthernet0/0"
-or_split = ospf_route.split()
+or_split = ospf_route.replace(",", " ").replace("[", "").replace("]", "")
+or_split = or_split.split()
 template = '''
     {0:<25} {5:<25}
     {1:<25} {6:<25}
@@ -26,5 +27,5 @@ template = '''
     {3:<25} {8:<25}
     {4:<25} {9:<25}
     '''
-result = template.format('Prefix', 'AD/Metric', 'Next-Hop', 'Last update', 'Outbound Interface', or_split[0].strip('[],'), or_split[1].strip('[],'), or_split[3].strip('[],'), or_split[4].strip('[],'), or_split[5].strip('[],'))
+result = template.format('Prefix', 'AD/Metric', 'Next-Hop', 'Last update', 'Outbound Interface', or_split[0], or_split[1], or_split[3], or_split[4], or_split[5])
 print(result)
