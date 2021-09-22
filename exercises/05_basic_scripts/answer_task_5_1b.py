@@ -50,14 +50,10 @@ london_co = {
         "routing": True,
     },
 }
-sel_item = input("Введите имя устройства r1, r2 или sw1: ")
-parameter = london_co[sel_item]
-print_k  = parameter.keys()
 
-vopros1 = "Введите имя параметра: {} "
-vopros = vopros1.format(print_k)
+device = input("Введите имя устройства: ")
+params = ", ".join(london_co[device].keys())
+print(params)
+parameter = input(f"Введите имя параметра ({params}): ")
 
-sel_par = input(vopros)
-print(london_co[sel_item][sel_par])
-
-
+print(london_co[device][parameter])
