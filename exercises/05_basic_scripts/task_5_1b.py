@@ -51,11 +51,9 @@ london_co = {
     },
 }
 sel_item = input("Введите имя устройства r1, r2 или sw1: ")
-parameter = london_co[sel_item]
-print_k  = parameter.keys()
+parameter = ", ".join(london_co[sel_item].keys())
 
-vopros1 = "Введите имя параметра: {} "
-vopros = vopros1.format(print_k)
+vopros = "Введите имя параметра ({}): ".format(parameter)
 
 sel_par = input(vopros)
 print(london_co[sel_item][sel_par])

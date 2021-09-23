@@ -50,11 +50,8 @@ london_co = {
     },
 }
 
-sel_item = input("Введите имя устройства r1, r2 или sw1: ")
-parameter = ", ".join(london_co[sel_item].keys())
+device = input("Введите имя устройства: ")
+params = ", ".join(london_co[device].keys())
+parameter = input(f"Введите имя параметра ({params}): ")
 
-vopros = "Введите имя параметра ({}): ".format(parameter)
-
-sel_par = input(vopros)
-print(london_co[sel_item].get(sel_par,'Такого параметра нет'))
-
+print(london_co[device].get(parameter, "Такого параметра нет"))
