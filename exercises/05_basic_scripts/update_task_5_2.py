@@ -31,26 +31,14 @@ Out[1]: '11111111111111111111111111110000'
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 """
 ip = input("IP-сети в формате: 10.1.1.0/24 :")
-network, mask = oct4.split('/')
+network, mask = ip.split('/')
 oct1, oct2, oct3, oct4 = network.split('.')
 
-'''
-Network:
-10        1         1         0
-00001010  00000001  00000001  00000000
-
-Mask:
-/24
-255       255       255       0
-11111111  11111111  11111111  00000000
-'''
-
 ip_mask = "1" * int(mask) + "0" * (32 - int(mask))
-mask1 = ip_mask[0:8]
-mask2 = ip_mask[8:16]
-mask3 = ip_mask[16:24]
-mask4 = ip_mask[24:]
-
+mask1 = int(ip_mask[0:8], 2)
+mask2 = int(ip_mask[8:16], 2)
+mask3 = int(ip_mask[16:24], 2)
+mask4 = int(ip_mask[24:], 2)
 
 template = '''
 Network:
@@ -58,14 +46,14 @@ Network:
 {0:08b}  {1:08b}  {2:08b}  {3:08b}
 '''
 
-print(template.format(int(oct1), int(oct2), int(oct3), int(oct4), int(mask)))
+print(template.format(int(oct1), int(oct2), int(oct3), int(oct4)))
 
 template1 = '''
 Mask:
-/{8}
+/{4}
 {0:<10}{1:<10}{2:<10}{3:<10}
-{4:8}  {5:8}  {6:8}  {7:8}
+{0:08b}  {1:08b}  {2:08b}  {3:08b}
 '''
-print(template1.format(int(mask1, 2), int(mask2, 2), int(mask3, 2), int(mask4, 2), mask1, mask2, mask3, mask4, mask))
+print(template1.format(mask1, mask2, mask3, mask4, mask))
 
 

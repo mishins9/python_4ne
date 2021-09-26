@@ -44,8 +44,61 @@ bin_ip = "00001010000000010000000111000011"
 
 А адрес сети будет первых 28 символов из bin_ip + 0000 (4 потому что всего
 в адресе может быть 32 бита, а 32 - 28 = 4)
-00001010000000010000000111000000
+0:x0001010000000010000000111000000
 
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+ip = input("IP-сети в формате: 10.1.1.0/24 :")
+network, mask = ip.split('/')
+oct1, oct2, oct3, oct4 = network.split('.')
+
+'''
+ip_bin  = [bin(int(oct1))[2:],
+           bin(int(oct2))[2:],
+           bin(int(oct3))[2:],
+           bin(int(oct4))[2:]]
+
+ip_bin[0] = "0" * (8 - len(ip_bin[0])) + ip_bin[0]
+ip_bin[1] = "0" * (8 - len(ip_bin[1])) + ip_bin[1]
+ip_bin[2] = "0" * (8 - len(ip_bin[2])) + ip_bin[2]
+ip_bin[3] = "0" * (8 - len(ip_bin[3])) + ip_bin[3]
+'''
+
+str_ip_bin = "{:08b}{:08b}{:08b}{:08b}".format(int(oct1), int(oct2), int(oct3), int(oct4))
+
+#str_ip_bin = ip_bin[0] + ip_bin[1] + ip_bin[2] + ip_bin[3]
+#print(ip_bin[0], ip_bin[1], ip_bin[2], ip_bin[3])
+
+net_ip = str_ip_bin[0:int(mask)] + "0" * (32 - int(mask))
+net_ip1 = net_ip[0:8]
+net_ip2 = net_ip[8:16]
+net_ip3 = net_ip[16:24]
+net_ip4 = net_ip[24:32]
+
+#print(net_ip1, net_ip2, net_ip3, net_ip4)
+
+ip_mask = "1" * int(mask) + "0" * (32 - int(mask))
+mask1 = ip_mask[0:8]
+mask2 = ip_mask[8:16]
+mask3 = ip_mask[16:24]
+mask4 = ip_mask[24:]
+
+
+template = '''
+Network:
+{0:<10}{1:<10}{2:<10}{3:<10}
+{0:08b}  {1:08b}  {2:08b}  {3:08b}
+'''
+
+print(template.format(int(net_ip1, 2), int(net_ip2, 2), int(net_ip3, 2), int(net_ip4, 2)))
+
+template1 = '''
+Mask:
+/{4}
+{0:<10}{1:<10}{2:<10}{3:<10}
+{0:08b}  {1:08b}  {2:08b}  {3:08b}
+'''
+print(template1.format(int(mask1, 2), int(mask2, 2), int(mask3, 2), int(mask4, 2), mask))
+
+
