@@ -13,23 +13,16 @@
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 """
 
-in_address = input("IP-адрес в формате 10.0.1.1 : ")
-list_ip = in_address.split(".")
-oct1, oct2, oct3, oct4 = [int(list_ip[0]),
-                          int(list_ip[1]),
-                          int(list_ip[2]),
-                          int(list_ip[3])]
+ip_address = input("введите ip-адрес: ")
+oct1 = int(ip_address.split(".")[0])
 
-
-if oct1 == 255:
+if ip_address == "255.255.255.255":
     print("local broadcast")
-elif oct1 == 0:
+elif ip_address == "0.0.0.0":
     print("unassigned")
-elif oct1 in range(1,240):
-    if oct1 in range(224,240):
-        print("multicast")
-    else: print("unicast")
-else: print("unused")
-
-
-
+elif 1 <= oct1 <= 223:
+    print("unicast")
+elif 224 <= oct1 <= 239:
+    print("multicast")
+else:
+    print("unused")
