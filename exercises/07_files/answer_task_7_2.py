@@ -41,7 +41,9 @@ interface Ethernet0/3
 """
 from sys import argv
 
-with open(argv[1], 'r') as f:
+filename = argv[1]
+
+with open(filename) as f:
     for line in f:
-        if line[0] != '!':
+        if not line.startswith("!"):
             print(line.rstrip())

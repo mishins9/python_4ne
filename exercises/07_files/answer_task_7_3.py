@@ -20,8 +20,10 @@
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
-with open('CAM_table.txt', 'r') as f:
-    for line in f:
+
+with open("CAM_table.txt") as conf:
+    for line in conf:
         words = line.split()
-        if line.count('.') == 2 and words[0].isdigit():
-            print("{:<8} {:<19} {}".format(words[0], words[1], words[3]))
+        if words and words[0].isdigit():
+            vlan, mac, _, interface = words
+            print(f"{vlan:9}{mac:20}{interface}")

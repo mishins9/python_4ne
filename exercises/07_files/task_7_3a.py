@@ -40,3 +40,12 @@
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+#spisok = []
+with open('CAM_table.txt', 'r') as f:
+    for line in f:
+        words = line.split()
+        print(words)
+        if line.count('.') == 2 and words[0].isdigit():
+            spisok.extend([i for i in words]) 
+#print("{:<8} {:<19} {}".format(int(words[0]), words[1], words[3]))
+print(spisok)
