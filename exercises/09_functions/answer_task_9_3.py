@@ -23,24 +23,18 @@
 
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 """
-from sys import argv
 
 def get_int_vlan_map(config_filename):
-    with open(config_filename, 'r') as f:
-        slovar_access = {}
-        slovar_trunk = {}
-        for line in f:
-            if line.startswith('interface'):
-                _, port = line.strip().split()
-#                print(port)
-            if line.count('allowed vlan'):
-                spisok_vlan  = line.split()[-1].split(',')
-                slovar_trunk[port] = [int(i) for i in spisok_vlan]
-#                print(slovar_trunk[port])
-            if line.count('access vlan'):
-                slovar_access[port] = int(line.split()[-1])
-#                print(slovar_access[port])
-#tuple_keys = tuple(list_keys)
-    return slovar_access, slovar_trunk
-result = get_int_vlan_map('config_sw1.txt')
-print(result)
+    access_dict = {}
+    trunk_dict = {}
+
+    with open(config_filename) as cfg:
+        for line in cfg:
+            line = line.rstrip()
+            if line.startswith("interface"):
+                intf = line.split()[1]
+            elif "access vlan" in line:
+                access_dict[intf] = int(line.split()[-1])
+            elif "trunk allowed" in line:
+                trunk_dict[intf] = [int(v) for v in line.split()[-1].split(",")]
+        return access_dict, trunk_dict
