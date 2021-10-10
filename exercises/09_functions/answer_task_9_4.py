@@ -65,19 +65,17 @@ def ignore_command(command, ignore):
             ignore_status = True
     return ignore_status
 
+
 def convert_config_to_dict(config_filename):
-    slovar_command = {}
-    with open(config_filename, 'r') as f:
+    config_dict = {}
+    with open(config_filename) as f:
         for line in f:
             line = line.rstrip()
-            if not line.startswith('!') and line and not ignore_command(line, ignore):
-                if line.startswith(' '):
-                    pred_key = list(slovar_command.keys())[-1]
-                    pred_slovar = slovar_command[pred_key]
-                    pred_slovar.append(line.strip())
-                else :
-                    slovar_command[line] = []
-    return slovar_command
+            if line and not (line.startswith("!") or ignore_command(line, ignore)):
+                if line[0].isalnum():
+                    section = line
+                    config_dict[section] = []
+                else:
+                    config_dict[section].append(line.strip())
+    return config_dict
 
-result = convert_config_to_dict('config_sw1.txt')
-print(result)
