@@ -34,11 +34,6 @@ R6           Fa 0/2          143           R S I           2811       Fa 0/0
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 """
 
-def clear_line(stroka, n_space):
-    spisok = stroka.split(n_space)
-    spisok_wo = list(filter(lambda x: x.rstrip(), spisok))
-    clear_stroka = [i.strip() for i in spisok_wo]
-    return clear_stroka
 
 def parse_cdp_neighbors(command_output):
     """
@@ -48,33 +43,20 @@ def parse_cdp_neighbors(command_output):
     и с файлами и с выводом с оборудования.
     Плюс учимся работать с таким выводом.
     """
-    result = command_output.split('\n')
-
-    atr_table = {}
-    priznak = False
-
-    for line in result:
-        line = line.rstrip()
-        if line:
-            if 'show cdp neighbors' in line :
-                source_dev = line[:line.find('show cdp neighbors')].replace('>', '')
-            elif 'Device ID' in line :
-                head_slovar = {}
-                r_head = clear_line(line, '  ')
-                for i in r_head:
-                    head_slovar[i] = (line.find(i), len(i))
-                priznak = True
-            elif priznak == True:
-                r_atr = []
-                for key, value in head_slovar.items():
-                    begin, end = value
-                    r_atr.append(line[begin:begin+end+1]) 
-                key_spisok = (source_dev, r_atr[1].replace(' ', '').strip())
-                value_spisok = (r_atr[0].strip(), r_atr[-1].replace(' ', '').strip())
-                atr_table[key_spisok] = value_spisok
-    return atr_table
+    result = {}
+    for line in command_output.split("\n"):
+        line = line.strip()
+        columns = line.split()
+        print(columns)
+        if ">" in line:
+            hostname = line.split(">")[0]
+        # 3 индекс это столбец holdtime - там всегда число
+        elif len(columns) >= 5 and columns[3].isdigit():
+            r_host, l_int, l_int_num, *other, r_int, r_int_num = columns
+            result[(hostname, l_int + l_int_num)] = (r_host, r_int + r_int_num)
+    return result
 
 
 if __name__ == "__main__":
-    with open("sh_cdp_n_sw1.txt") as f:
+    with open("sh_cdp_n_r3.txt") as f:
         print(parse_cdp_neighbors(f.read()))
