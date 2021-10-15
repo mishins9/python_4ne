@@ -96,10 +96,8 @@ def unique_network_map(topology_dict):
     summa = {}
     uniq = []
     for key, value in topology_dict.items():
-        left_col1, _ = key
-        right_col1, _  = value
-        lr_col = [left_col1, right_col1]
-        rl_col = [right_col1, left_col1]
+        lr_col = [key[0], value[0]]
+        rl_col = [value[0], key[0]]
         if lr_col not in uniq and rl_col not in uniq:
             summa[key] = value
             uniq.append(lr_col)

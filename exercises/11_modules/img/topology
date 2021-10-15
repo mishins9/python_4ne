@@ -2,12 +2,12 @@ graph {
 	graph [bgcolor="#333333" fontcolor=white fontsize=16 label="Network Map" rankdir=BT]
 	node [color="#006699" fillcolor="#006699" fontcolor=white fontname=Helvetica margin=0.4 shape=box style=filled]
 	edge [arrowhead=open color=green fontcolor=white fontname=Courier fontsize=14 style=dashed]
+	SW2
+	R2
+	R4
 	R3
 	R5
-	SW2
-	R4
 	R1
-	R2
 	R6
 	SW1
 	SW1 -- R1 [label="            " headlabel="Eth0/0" taillabel="Eth0/1"]
