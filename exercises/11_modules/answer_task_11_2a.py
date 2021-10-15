@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from pprint import pprint
-from task_11_2 import create_network_map 
-from draw_network_graph import draw_topology
-
 """
 Задание 11.2a
 
@@ -85,27 +81,20 @@ infiles = [
     "sh_cdp_n_r3.txt",
 ]
 
-"""
-def draw_topology(topology_dict, output_filename="img/topology"):
-    Функция генерирует топологию, в формате svg.
-    И записывает файл topology.svg в каталог img.
-
-"""
 
 def unique_network_map(topology_dict):
-    summa = {}
-    uniq = []
+    network_map = {}
     for key, value in topology_dict.items():
-        left_col1, _ = key
-        right_col1, _  = value
-        lr_col = [left_col1, right_col1]
-        rl_col = [right_col1, left_col1]
-        if lr_col not in uniq and rl_col not in uniq:
-            summa[key] = value
-            uniq.append(lr_col)
-    return summa
+        if not network_map.get(value) == key:
+            network_map[key] = value
+    return network_map
 
-topology = create_network_map(infiles)
-uniq_topology = unique_network_map(topology)
-draw_topology(uniq_topology)
-pprint(uniq_topology)
+
+# второй вариант решения
+def unique_network_map(topology_dict):
+    network_map = {}
+    for key, value in topology_dict.items():
+        key, value = sorted([key, value])
+        network_map[key] = value
+    return network_map
+
