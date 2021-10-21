@@ -15,29 +15,23 @@
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 """
 import subprocess
-import ipaddress
-
-def check_ip(ip):
-    try:
-        ipaddress.ip_address(ip)
-        return True
-    except ValueError as err:
-        return False
-
-def ping_ip_addresses(list_ip):
-    ipv4 = [i for i in list_ip if check_ip(i)]
-    available = []
-    notavailable = []
-    for ip in ipv4:
-        result = subprocess.run(['ping', '-c', '3', '-n', ip])
-        if result.returncode != 0:
-            notavailable.append(ip)
-        else :
-            available.append(ip)
-    return available, notavailable
-
-if __name__ == '__main__':
-    ip_list = ['10.1.1.1', '8.8.8.8', '2.2.2']
-    print(ping_ip_addresses(ip_list))
 
 
+def ping_ip_addresses(ip_addresses):
+    reachable = []
+    unreachable = []
+
+    for ip in ip_addresses:
+        result = subprocess.run(
+            ["ping", "-c", "3", ip], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        if result.returncode == 0:
+            reachable.append(ip)
+        else:
+            unreachable.append(ip)
+
+    return reachable, unreachable
+
+
+if __name__ == "__main__":
+    print(ping_ip_addresses(["10.1.1.1", "8.8.8.8"]))
