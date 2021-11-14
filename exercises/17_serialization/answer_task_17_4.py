@@ -40,9 +40,8 @@ C-3PO,c3po@gmail.com,16/12/2019 17:24
 Функции convert_str_to_datetime и convert_datetime_to_str использовать не обязательно.
 
 """
-from pprint import pprint
-import datetime
 import csv
+import datetime
 
 
 def convert_str_to_datetime(datetime_str):
@@ -58,35 +57,23 @@ def convert_datetime_to_str(datetime_obj):
     """
     return datetime.datetime.strftime(datetime_obj, "%d/%m/%Y %H:%M")
 
+
 def write_last_log_to_csv(source_log, output):
-    with open(output, 'w') as dest:
-        with open(source_log) as src:
-            reader = csv.reader(src)
-            headers = next(reader)
-            data = list(reader)
-#            print(data)
-            slovar = {}
-            slovar_row = {}
-            for row in data:
-                name, email, time = row
-                if not slovar.get(email):
-                    slovar[email] = time
-                    slovar_row.setdefault(email, row)
-                else:
-                     time_exist =  convert_str_to_datetime(slovar.get(email))
-                     time_now =  convert_str_to_datetime(time)
-                     if time_now > time_exist:
-                         slovar[email] = time
-                         slovar_row.update({email : row})
-#                         print(convert_datetime_to_str(time_exist),time)
-#            pprint(slovar_row)
-        data_out = [value for key, value in slovar_row.items()]
-#        print(data_out)
+    with open(source_log) as f:
+        data = list(csv.reader(f))
+        header = data[0]
+    result = {}
+    sorted_by_date = sorted(
+        data[1:], key=lambda x: convert_str_to_datetime(x[2])
+    )
+    for name, email, date in sorted_by_date:
+        result[email] = (name, email, date)
+    with open(output, "w") as dest:
         writer = csv.writer(dest)
-        writer.writerow(headers)
-        writer.writerows(data_out)
+        writer.writerow(header)
+        for row in result.values():
+            writer.writerow(row)
 
 
-
-if __name__ == '__main__':
-    write_last_log_to_csv('mail_log.csv', 'mail_log_output.csv')
+if __name__ == "__main__":
+    write_last_log_to_csv("mail_log.csv", "example_result.csv")
