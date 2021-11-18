@@ -1,0 +1,48 @@
+Подключаюсь к 192.168.100.1...
+config term
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#logging 0255.255.1
+                   ^
+% Invalid input detected at '^' marker.
+
+R1(config)#logging
+% Incomplete command.
+
+R1(config)#a
+% Ambiguous command:  "a"
+R1(config)#logging buffered 20010
+R1(config)#ip http server
+R1(config)#end
+R1#
+Подключаюсь к 192.168.100.2...
+config term
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#logging 0255.255.1
+                   ^
+% Invalid input detected at '^' marker.
+
+R2(config)#logging
+% Incomplete command.
+
+R2(config)#a
+% Ambiguous command:  "a"
+R2(config)#logging buffered 20010
+R2(config)#ip http server
+R2(config)#end
+R2#
+Подключаюсь к 192.168.100.3...
+config term
+Enter configuration commands, one per line.  End with CNTL/Z.
+R3(config)#logging 0255.255.1
+                   ^
+% Invalid input detected at '^' marker.
+
+R3(config)#logging
+% Incomplete command.
+
+R3(config)#a
+% Ambiguous command:  "a"
+R3(config)#logging buffered 20010
+R3(config)#ip http server
+R3(config)#end
+R3#
