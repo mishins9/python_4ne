@@ -39,65 +39,42 @@ router ospf 1
 
 Проверить работу функции на устройствах из файла devices.yaml и словаре commands
 """
-
-from concurrent.futures import ThreadPoolExecutor
-import logging
-from datetime import datetime
-import time
-import yaml
-import subprocess
-import re
-from netmiko import (
-        ConnectHandler,
-        NetmikoTimeoutException,
-        NetmikoAuthenticationException,
-)
 from itertools import repeat
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-logging.getLogger('paramiko').setLevel(logging.WARNING)
+from netmiko import ConnectHandler, NetMikoTimeoutException
+import yaml
 
-logging.basicConfig(
-        format = '%(threadName)s %(name)s %(levelname)s: %(message)s',
-        level=logging.INFO,
-)
+
+commands = {
+    "192.168.100.1": "sh ip int br",
+    "192.168.100.2": "sh arp",
+    "192.168.100.3": "sh ip int br",
+}
+
 
 def send_show_command(device, command):
-    start_msg = '===> {} Connection: {}'
-    received_msg = '<=== {} Received:   {}'
-    logging.info(start_msg.format(datetime.now().time(), device['host']))
-    try:
-        with ConnectHandler(**device) as ssh:
-            ssh.enable()
-            prompt = ssh.find_prompt()
-            output = ssh.send_command(command, strip_command=False)
-            logging.info(received_msg.format(datetime.now().time(), device['host']))
-            return f"{prompt}{output}\n"
-    except (NetmikoTimeoutException,NetmikoAuthenticationException) as error:
-        print(error)
-   
+    with ConnectHandler(**device) as ssh:
+        ssh.enable()
+        result = ssh.send_command(command)
+        prompt = ssh.find_prompt()
+    return f"{prompt}{command}\n{result}\n"
 
-def send_command_to_devices(devices, commands_dict, filename, limit = 3):
-    future_list = []
+
+def send_command_to_devices(devices, commands_dict, filename, limit=3):
     with ThreadPoolExecutor(max_workers=limit) as executor:
-        for device in devices:
-            future = executor.submit(send_show_command, device, commands_dict[device['host']])
-            future_list.append(future)
-        with open(filename, 'w') as dest:
-            for f in future_list:
-                dest.write(f.result())
+        futures = [
+            executor.submit(send_show_command, device, commands_dict[device["host"]])
+            for device in devices
+        ]
+        with open(filename, "w") as f:
+            for future in as_completed(futures):
+                f.write(future.result())
 
-if __name__ == '__main__':
 
-# Этот словарь нужен только для проверки работа кода, в нем можно менять IP-адреса
-# тест берет адреса из файла devices.yaml
-    commands = {
-        "192.168.100.3": "sh run | s ^router ospf",
-        "192.168.100.1": "sh ip int br",
-        "192.168.100.2": "sh int desc",
-    }
-    filename= 'output_show_dict_thread.txt'
+if __name__ == "__main__":
+    command = "sh ip int br"
     with open("devices.yaml") as f:
-        list_hosts = yaml.safe_load(f)
-    send_command_to_devices(list_hosts, commands, filename)
-
+        devices = yaml.load(f)
+    send_command_to_devices(devices, commands, "result.txt")
 

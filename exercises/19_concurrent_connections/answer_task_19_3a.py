@@ -43,72 +43,53 @@ O        10.1.1.1/32 [110/11] via 192.168.100.1, 07:12:03, Ethernet0/0
 O        10.30.0.0/24 [110/20] via 192.168.100.1, 07:12:03, Ethernet0/0
 
 
+Порядок команд в файле может быть любым.
+
 Для выполнения задания можно создавать любые дополнительные функции,
 а также использовать функции созданные в предыдущих заданиях.
 
 Проверить работу функции на устройствах из файла devices.yaml и словаре commands
 """
-from concurrent.futures import ThreadPoolExecutor
-import logging
-from datetime import datetime
-import time
-import yaml
-import subprocess
-import re
-from netmiko import (
-        ConnectHandler,
-        NetmikoTimeoutException,
-        NetmikoAuthenticationException,
-)
 from itertools import repeat
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-logging.getLogger('paramiko').setLevel(logging.WARNING)
+from netmiko import ConnectHandler, NetMikoTimeoutException
+import yaml
 
-logging.basicConfig(
-        format = '%(threadName)s %(name)s %(levelname)s: %(message)s',
-        level=logging.INFO,
-)
 
-def send_show_command(device, command):
-    start_msg = '===> {} Connection: {}'
-    received_msg = '<=== {} Received:   {}'
-    logging.info(start_msg.format(datetime.now().time(), device['host']))
-    try:
-        with ConnectHandler(**device) as ssh:
-            ssh.enable()
-            prompt = ssh.find_prompt()
-            output = ssh.send_command(command, strip_command=False)
-            logging.info(received_msg.format(datetime.now().time(), device['host']))
-            return f"{prompt}{output}\n"
-    except (NetmikoTimeoutException,NetmikoAuthenticationException) as error:
-        print(error)
-   
-
-def send_command_to_devices(devices, commands_dict, filename, limit = 3):
-    future_list = []
-    with ThreadPoolExecutor(max_workers=limit) as executor:
-        for device in devices:
-            commands = commands_dict[device['host']]
-            for command in commands:
-                future = executor.submit(send_show_command, device, command)
-                future_list.append(future)
-        with open(filename, 'w') as dest:
-            for f in future_list:
-                dest.write(f.result())
-
-if __name__ == '__main__':
-
-# Этот словарь нужен только для проверки работа кода, в нем можно менять IP-адреса
-# тест берет адреса из файла devices.yaml
-    commands = {
-        "192.168.100.3": ["sh ip int br", "sh ip route | ex -"],
-        "192.168.100.1": ["sh ip int br", "sh int desc"],
-        "192.168.100.2": ["sh int desc"],
+commands = {
+    "192.168.100.1": ["sh ip int br", "sh arp"],
+    "192.168.100.2": ["sh arp"],
+    "192.168.100.3": ["sh ip int br", "sh ip route | ex -"],
 }
 
-    filename= 'output_show_dict_more_thread.txt'
-    with open("devices.yaml") as f:
-        list_hosts = yaml.safe_load(f)
-    send_command_to_devices(list_hosts, commands, filename)
 
+def send_show_command(device, commands):
+    output = ""
+    with ConnectHandler(**device) as ssh:
+        ssh.enable()
+        for command in commands:
+            result = ssh.send_command(command)
+            prompt = ssh.find_prompt()
+            output += f"{prompt}{command}\n{result}\n"
+    return output
+
+
+def send_command_to_devices(devices, commands_dict, filename, limit=3):
+    with ThreadPoolExecutor(max_workers=limit) as executor:
+        futures = []
+        for device in devices:
+            ip = device["host"]
+            command = commands_dict[ip]
+            futures.append(executor.submit(send_show_command, device, command))
+        with open(filename, "w") as f:
+            for future in as_completed(futures):
+                f.write(future.result())
+
+
+if __name__ == "__main__":
+    command = "sh ip int br"
+    with open("devices.yaml") as f:
+        devices = yaml.load(f)
+    send_command_to_devices(devices, commands, "result.txt")
 

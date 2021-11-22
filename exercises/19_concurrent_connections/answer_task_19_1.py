@@ -23,48 +23,28 @@
 а затем запустить эту функцию в разных потоках для разных
 IP-адресов с помощью concurrent.futures (это надо сделать в функции ping_ip_addresses).
 """
-
-from concurrent.futures import ThreadPoolExecutor
-import logging
-from datetime import datetime
-import time
-import yaml
 import subprocess
-import re
+from concurrent.futures import ThreadPoolExecutor
 
-logging.getLogger('paramiko').setLevel(logging.WARNING)
 
-logging.basicConfig(
-        format = '%(threadName)s %(name)s %(levelname)s: %(message)s',
-        level=logging.INFO,
-)
+def ping_ip(ip):
+    result = subprocess.run(["ping", "-c", "3", "-n", ip], stdout=subprocess.DEVNULL)
+    ip_is_reachable = result.returncode == 0
+    return ip_is_reachable
 
-def ping_ip_address(ip_add):
-    start_msg = '===> {} Connection: {}'
-    received_msg = '<=== {} Received:   {}'
-    logging.info(start_msg.format(datetime.now().time(), ip_add))
-    result = subprocess.run(['ping', '-c', '3', '-n', ip_add],
-                            stdout=subprocess.DEVNULL)
-    logging.info(received_msg.format(datetime.now().time(), ip_add))
-    return result
-   
 
-def ping_ip_addresses(list_host, limit = 3):
-    access = []
-    notaccess = []
+def ping_ip_addresses(ip_list, limit=3):
+    reachable = []
+    unreachable = []
     with ThreadPoolExecutor(max_workers=limit) as executor:
-        result = executor.map(ping_ip_address, list_host)
-        for device, output in zip(list_host, result):
-            regex = 'returncode=0'
-            if re.search(regex, str(output)):
-                access.append(device)
-            else:
-                notaccess.append(device)
-    return (access, notaccess)
+        results = executor.map(ping_ip, ip_list)
+    for ip, status in zip(ip_list, results):
+        if status:
+            reachable.append(ip)
+        else:
+            unreachable.append(ip)
+    return reachable, unreachable
 
-if __name__ == '__main__':
-#    with open("devices.yaml") as f:
-#        devices = yaml.safe_load(f)
-#        ip_list= [item for item in devices]
-    ip_list = ['8.8.8.8', '8.8.4.4', '1.1.1.1']
-    print(ping_ip_addresses(ip_list))
+
+if __name__ == "__main__":
+    print(ping_ip_addresses(["8.8.8.8", "192.168.100.22", "192.168.100.1"]))

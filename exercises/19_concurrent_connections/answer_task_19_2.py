@@ -34,53 +34,32 @@ Ethernet0/1                unassigned      YES NVRAM  administratively down down
 
 Проверить работу функции на устройствах из файла devices.yaml
 """
-
-from concurrent.futures import ThreadPoolExecutor
-import logging
-from datetime import datetime
-import time
-import yaml
-import subprocess
-import re
-from netmiko import (
-        ConnectHandler,
-        NetmikoTimeoutException,
-        NetmikoAuthenticationException,
-)
 from itertools import repeat
+from concurrent.futures import ThreadPoolExecutor
 
-logging.getLogger('paramiko').setLevel(logging.WARNING)
+from netmiko import ConnectHandler
+import yaml
 
-logging.basicConfig(
-        format = '%(threadName)s %(name)s %(levelname)s: %(message)s',
-        level=logging.INFO,
-)
 
 def send_show_command(device, command):
-    start_msg = '===> {} Connection: {}'
-    received_msg = '<=== {} Received:   {}'
-    logging.info(start_msg.format(datetime.now().time(), device['host']))
-    try:
-        with ConnectHandler(**device) as ssh:
-            ssh.enable()
-            prompt = ssh.find_prompt()
-            output = ssh.send_command(command, strip_command=False)
-            logging.info(received_msg.format(datetime.now().time(), device['host']))
-            return f"{prompt}{output}\n"
-    except (NetmikoTimeoutException,NetmikoAuthenticationException) as error:
-        print(error)
-   
+    with ConnectHandler(**device) as ssh:
+        ssh.enable()
+        result = ssh.send_command(command)
+        prompt = ssh.find_prompt()
+    return f"{prompt}{command}\n{result}\n"
 
-def send_show_command_to_devices(devices, command, filename, limit = 3):
+
+def send_show_command_to_devices(devices, command, filename, limit=3):
     with ThreadPoolExecutor(max_workers=limit) as executor:
-        result = executor.map(send_show_command, devices, repeat(command))
-        with open(filename, 'a') as dest:
-            for device, output in zip(devices, result):
-                dest.write(output)
+        results = executor.map(send_show_command, devices, repeat(command))
+        with open(filename, "w") as f:
+            for output in results:
+                f.write(output)
 
-if __name__ == '__main__':
-    command = 'sh ip int br'
-    filename= 'output_show_thread.txt'
+
+if __name__ == "__main__":
+    command = "sh ip int br"
     with open("devices.yaml") as f:
-        list_hosts = yaml.safe_load(f)
-    send_show_command_to_devices(list_hosts, command, filename)
+        devices = yaml.safe_load(f)
+    send_show_command_to_devices(devices, command, "result.txt")
+

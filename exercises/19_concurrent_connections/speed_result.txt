@@ -1,0 +1,22 @@
+my 3a
+ThreadPoolExecutor-0_0 root INFO: ===> 17:49:27.630698 Connection: 192.168.100.1
+ThreadPoolExecutor-0_1 root INFO: ===> 17:49:27.631136 Connection: 192.168.100.1
+ThreadPoolExecutor-0_2 root INFO: ===> 17:49:27.632626 Connection: 192.168.100.2
+ThreadPoolExecutor-0_1 root INFO: <=== 17:49:33.976997 Received:   192.168.100.1
+ThreadPoolExecutor-0_0 root INFO: <=== 17:49:34.036246 Received:   192.168.100.1
+ThreadPoolExecutor-0_2 root INFO: <=== 17:49:34.227317 Received:   192.168.100.2
+ThreadPoolExecutor-0_1 root INFO: ===> 17:49:36.181995 Connection: 192.168.100.3
+ThreadPoolExecutor-0_0 root INFO: ===> 17:49:36.251152 Connection: 192.168.100.3
+ThreadPoolExecutor-0_1 root INFO: <=== 17:49:42.364056 Received:   192.168.100.3
+ThreadPoolExecutor-0_0 root INFO: <=== 17:49:42.416959 Received:   192.168.100.3
+15
+
+answer 3a
+ThreadPoolExecutor-0_0 root INFO: ===> 17:51:25.016377 Connection: 192.168.100.1
+ThreadPoolExecutor-0_1 root INFO: ===> 17:51:25.016627 Connection: 192.168.100.2
+ThreadPoolExecutor-0_2 root INFO: ===> 17:51:25.017065 Connection: 192.168.100.3
+ThreadPoolExecutor-0_1 root INFO: <=== 17:51:33.610406 Received:   192.168.100.2
+ThreadPoolExecutor-0_0 root INFO: <=== 17:51:34.838357 Received:   192.168.100.1
+ThreadPoolExecutor-0_2 root INFO: <=== 17:51:34.930755 Received:   192.168.100.3
+9
+
