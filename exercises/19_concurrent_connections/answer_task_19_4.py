@@ -105,80 +105,45 @@ R3#
 
 Для выполнения задания можно создавать любые дополнительные функции.
 """
-
-from concurrent.futures import ThreadPoolExecutor
-import logging
-from datetime import datetime
-import time
-import yaml
-import subprocess
-import re
-from netmiko import (
-        ConnectHandler,
-        NetmikoTimeoutException,
-        NetmikoAuthenticationException,
-)
 from itertools import repeat
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-logging.getLogger('paramiko').setLevel(logging.WARNING)
+from netmiko import ConnectHandler, NetMikoTimeoutException
+import yaml
 
-logging.basicConfig(
-        format = '%(threadName)s %(name)s %(levelname)s: %(message)s',
-        level=logging.INFO,
-)
 
 def send_show_command(device, command):
-    start_msg = '===> {} Connection: {}'
-    received_msg = '<=== {} Received:   {}'
-    logging.info(start_msg.format(datetime.now().time(), device['host']))
-    try:
-        with ConnectHandler(**device) as ssh:
-            ssh.enable()
-            prompt = ssh.find_prompt()
-            output = ssh.send_command(command, strip_command=False)
-            logging.info(received_msg.format(datetime.now().time(), device['host']))
-            return f"{prompt}{output}\n"
-    except (NetmikoTimeoutException,NetmikoAuthenticationException) as error:
-        print(error)
-   
-def send_config_command(device, command):
-    start_msg = '===> {} Connection: {}'
-    received_msg = '<=== {} Received:   {}'
-    logging.info(start_msg.format(datetime.now().time(), device['host']))
-    try:
-        with ConnectHandler(**device) as ssh:
-            ssh.enable()
-            prompt = ssh.find_prompt()
-            output = ssh.send_config_set(command, strip_command=False)
-            logging.info(received_msg.format(datetime.now().time(), device['host']))
-            return f"{output}\n"
-    except (NetmikoTimeoutException,NetmikoAuthenticationException) as error:
-        print(error)
+    with ConnectHandler(**device) as ssh:
+        ssh.enable()
+        result = ssh.send_command(command)
+        prompt = ssh.find_prompt()
+    return f"{prompt}{command}\n{result}\n"
 
-def send_commands_to_devices(devices, filename, *, show = None, config = None, limit = 3):
+
+def send_cfg_commands(device, commands):
+    with ConnectHandler(**device) as ssh:
+        ssh.enable()
+        result = ssh.send_config_set(commands)
+    return f"{result}\n"
+
+
+def send_commands_to_devices(devices, filename, *, show=None, config=None, limit=3):
     if show and config:
-        raise ValueError("должен передаваться только один из аргументов show, config")
-    future_list = []
+        raise ValueError("Можно передавать только один из аргументов show/config")
+    command = show if show else config
+    function = send_show_command if show else send_cfg_commands
+
     with ThreadPoolExecutor(max_workers=limit) as executor:
-        for device in devices:
-            if show:
-                future = executor.submit(send_show_command, device, show)
-                future_list.append(future)
-            elif config:
-                future = executor.submit(send_config_command, device, config)
-                future_list.append(future)
-        with open(filename, 'w') as dest:
-            for f in future_list:
-                dest.write(f.result())
+        futures = [executor.submit(function, device, command) for device in devices]
+        with open(filename, "w") as f:
+            for future in as_completed(futures):
+                f.write(future.result())
 
-if __name__ == '__main__':
 
-    filename= 'output_show_config_thread.txt'
+if __name__ == "__main__":
+    command = "sh ip int br"
     with open("devices.yaml") as f:
-        list_hosts = yaml.safe_load(f)
-#    send_commands_to_devices(list_hosts, filename, show='sh clock')
-#    send_commands_to_devices(list_hosts, filename, config='logging 10.5.5.5')
-
-    commands = ['router ospf 55', 'network 0.0.0.0 255.255.255.255 area 0']
-    send_commands_to_devices(list_hosts, filename, config=commands)
+        devices = yaml.load(f)
+    send_commands_to_devices(devices, show=command, filename="result.txt")
+    send_commands_to_devices(devices, config="logging 10.5.5.5", filename="result.txt")
 

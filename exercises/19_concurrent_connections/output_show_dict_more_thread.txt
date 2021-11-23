@@ -1,0 +1,27 @@
+R1#sh ip int br
+Interface                  IP-Address      OK? Method Status                Protocol
+FastEthernet0/0            192.168.100.1   YES NVRAM  up                    up      
+FastEthernet0/1            unassigned      YES NVRAM  administratively down down    
+Loopback100                10.1.1.100      YES manual up                    up      
+R1#sh int desc
+Interface                      Status         Protocol Description
+Fa0/0                          up             up       
+Fa0/1                          admin down     down     
+Lo100                          up             up       
+R2#sh int desc
+Interface                      Status         Protocol Description
+Fa0/0                          up             up       
+Fa0/1                          admin down     down     
+R3#sh ip int br
+Interface                  IP-Address      OK? Method Status                Protocol
+FastEthernet0/0            192.168.100.3   YES NVRAM  up                    up      
+FastEthernet0/1            unassigned      YES NVRAM  administratively down down    
+R3#sh ip route | ex -
+Gateway of last resort is not set
+
+      10.0.0.0/32 is subnetted, 1 subnets
+O        10.1.1.100 [110/2] via 192.168.100.1, 18:48:39, FastEthernet0/0
+      192.168.100.0/24 is variably subnetted, 2 subnets, 2 masks
+C        192.168.100.0/24 is directly connected, FastEthernet0/0
+L        192.168.100.3/32 is directly connected, FastEthernet0/0
+
