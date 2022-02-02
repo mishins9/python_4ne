@@ -20,14 +20,14 @@ import yaml
 
 
 def generate_config(template, data_dict):
-    dir_temp, file_temp  = os.path.split(template) 
-    env = Environment(loader=FileSystemLoader(dir_temp), trim_blocks=True,
-                      lstrip_blocks=True)
-    template = env.get_template(file_temp)
-    return template.render(data_dict)
+    templ_dir, templ_file = os.path.split(template)
+    env = Environment(
+        loader=FileSystemLoader(templ_dir), trim_blocks=True, lstrip_blocks=True
+    )
+    templ = env.get_template(templ_file)
+    return templ.render(data_dict)
 
 
-# так должен выглядеть вызов функции
 if __name__ == "__main__":
     data_file = "data_files/for.yml"
     template_file = "templates/for.txt"
