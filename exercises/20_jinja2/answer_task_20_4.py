@@ -10,7 +10,7 @@
 * добавления VLAN как access, на указанном интерфейсе
 * добавления VLAN в список разрешенных, на указанные транки
 
-Шаблон надо создавать вручную.
+Шаблон надо создавать вручную, скопировав части конфига в соответствующий шаблон.
 
 Если VLAN необходимо добавить как access, надо настроить и режим интерфейса
 и добавить его в VLAN:
@@ -32,17 +32,19 @@ interface Gi0/10
 Не копируйте код функции generate_config.
 
 """
+# templates/add_vlan_to_switch.txt
+"""
+vlan {{ vlan_id }}
+ name {{ name }}
 
-import os
-from jinja2 import Environment, FileSystemLoader
-import yaml
-from task_20_1 import generate_config
+{% for int in access %}
+interface {{ int }}
+ switchport mode access
+ switchport access vlan {{ vlan_id }}
+{% endfor %}
 
-# так должен выглядеть вызов функции
-if __name__ == "__main__":
-    data_file = "data_files/add_vlan_to_switch.yaml"
-    template_file = "templates/add_vlan_to_switch.txt"
-    with open(data_file) as f:
-        data = yaml.safe_load(f)
-    print(generate_config(template_file, data))
-
+{% for int in trunk %}
+interface {{ int }}
+ switchport trunk allowed vlan add {{ vlan_id }}
+{% endfor %}
+"""

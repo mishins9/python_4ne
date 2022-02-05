@@ -37,11 +37,30 @@
 интерфейсов, но при этом не проверяет настроенные номера тунелей и другие команды.
 Они должны быть, но тест упрощен, чтобы было больше свободы выполнения.
 """
+import os
+from jinja2 import Environment, FileSystemLoader
+import yaml
+from task_20_1 import generate_config
+from task_20_5 import create_vpn_config
 
-data = {
-    "tun_num": None,
-    "wan_ip_1": "192.168.100.1",
-    "wan_ip_2": "192.168.100.2",
-    "tun_ip_1": "10.0.1.1 255.255.255.252",
-    "tun_ip_2": "10.0.1.2 255.255.255.252",
-}
+def configure_vpn(src_device_params, dst_device_params, src_template,
+                  dst_template, vpn_data_dict):
+    temp_r1, temp_r2 = create_vpn_config(src_template, dst_template, vpn_data_dict)
+
+if __name__ == "__main__":
+
+    data = {
+        "tun_num": None,
+        "wan_ip_1": "192.168.100.1",
+        "wan_ip_2": "192.168.100.2",
+        "tun_ip_1": "10.0.1.1 255.255.255.252",
+        "tun_ip_2": "10.0.1.2 255.255.255.252",
+    }
+
+    temp_file1 = "templates/gre_ipsec_vpn_1.txt"
+    temp_file2 = "templates/gre_ipsec_vpn_2.txt"
+    src_params = ""
+    dst_params = ""
+
+    print(configure_vpn(src_params, dst_params, temp_file1, temp_file2, data))
+
