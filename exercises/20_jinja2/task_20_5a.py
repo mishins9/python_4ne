@@ -38,14 +38,40 @@
 Они должны быть, но тест упрощен, чтобы было больше свободы выполнения.
 """
 import os
-from jinja2 import Environment, FileSystemLoader
+from pprint import pprint
 import yaml
-from task_20_1 import generate_config
+from netmiko import (
+        ConnectHandler,
+        NetmikoTimeoutException,
+        NetmikoAuthenticationException,
+)
+from jinja2 import Environment, FileSystemLoader
 from task_20_5 import create_vpn_config
+
+def send_show_command(device, commands):
+    result = {}
+    try:
+        with ConnectHandler(**device) as ssh:
+            ssh.enable()
+            for command in commands:
+                output = ssh.send_command(command)
+                result[command] = output
+        return result
+    except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
+        print(error)
 
 def configure_vpn(src_device_params, dst_device_params, src_template,
                   dst_template, vpn_data_dict):
+    show_commands = ["sh ip int br"]
+    src_show  = send_show_command(src_device_params, show_commands)
+    dst_show  = send_show_command(dst_device_params, show_commands)
+    for show_command in show_commands:
+        print(src_show[show_command])
+        pprint(dst_show[show_command], width=120)
+
     temp_r1, temp_r2 = create_vpn_config(src_template, dst_template, vpn_data_dict)
+#    print(temp_r1)
+#    print(temp_r2)
 
 if __name__ == "__main__":
 
@@ -59,8 +85,13 @@ if __name__ == "__main__":
 
     temp_file1 = "templates/gre_ipsec_vpn_1.txt"
     temp_file2 = "templates/gre_ipsec_vpn_2.txt"
-    src_params = ""
-    dst_params = ""
+
+    with open("devices.yaml") as f:
+        devices = yaml.safe_load(f)
+
+    src_params = devices[0]
+    dst_params = devices[1]
+
 
     print(configure_vpn(src_params, dst_params, temp_file1, temp_file2, data))
 
