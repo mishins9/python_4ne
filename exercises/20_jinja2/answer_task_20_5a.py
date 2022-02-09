@@ -37,83 +37,45 @@
 интерфейсов, но при этом не проверяет настроенные номера тунелей и другие команды.
 Они должны быть, но тест упрощен, чтобы было больше свободы выполнения.
 """
-import os
 import re
-from pprint import pprint
+
 import yaml
-from netmiko import (
-        ConnectHandler,
-        NetmikoTimeoutException,
-        NetmikoAuthenticationException,
-)
-from jinja2 import Environment, FileSystemLoader
+from netmiko import ConnectHandler
 from task_20_5 import create_vpn_config
 
-def send_show_command(device, commands):
-    result = {}
-    try:
-        with ConnectHandler(**device) as ssh:
-            ssh.enable()
-            for command in commands:
-                output = ssh.send_command(command)
-                result[command] = output
-        return result
-    except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
-        print(error)
 
-def send_config_commands(device, commands):
-    result = {}
-    try:
-        with ConnectHandler(**device) as ssh:
-            ssh.enable()
-            print("Connected")
-            output = ssh.send_config_set(commands)
-        return output
-    except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
-        print(error)
+def get_free_tunnel_number(src, dst):
+    nums = [int(num) for num in re.findall(r"Tunnel(\d+)", src + dst)]
+    if not nums:
+        return 0
+    diff = set(range(min(nums), max(nums) + 1)) - set(nums)
+    if diff:
+        return min(diff)
+    else:
+        return max(nums) + 1
 
 
-def configure_vpn(src_device_params, dst_device_params, src_template,
-                  dst_template, vpn_data_dict):
-    show_commands = ["sh ip int br"]
-    src_show  = send_show_command(src_device_params, show_commands)
-    dst_show  = send_show_command(dst_device_params, show_commands)
+def configure_vpn(
+    src_device_params, dst_device_params, src_template, dst_template, vpn_data_dict
+):
+    with ConnectHandler(**src_device_params) as src, ConnectHandler(
+        **dst_device_params
+    ) as dst:
+        src.enable()
+        dst.enable()
+        tunnels_src = src.send_command("sh run | include ^interface Tunnel")
+        tunnels_dst = dst.send_command("sh run | include ^interface Tunnel")
+        tun_num = get_free_tunnel_number(tunnels_src, tunnels_dst)
+        vpn_data_dict["tun_num"] = tun_num
+        vpn1, vpn2 = create_vpn_config(src_template, dst_template, vpn_data_dict)
+        output1 = src.send_config_set(vpn1.split("\n"))
+        output2 = dst.send_config_set(vpn2.split("\n"))
+    return output1, output2
 
-
-    regex = r'(\S+) +([\d.]+|unassigned) +\w+ +\w+ +(up|down|administratively down) +(up|down)'
-
-    for show_command in show_commands:
-        src_result = [match.group(1) for match in re.finditer(regex,
-                                                              src_show[show_command])]
-        dst_result = [match.group(1) for match in re.finditer(regex,
-                                                              dst_show[show_command])]
-
-#        print(src_result)
-#        print(dst_result)
-    
-
-#    spisok_tunnel = []
-#    for item in src_result:
-#        if "Tunnel" in item:
-#            reg_split = r'Tunnel(\d+)'
-#            reg_search = re.search(reg_split, item)
-#            spisok_tunnel.append(reg_search(1))
-
-    vpn_data_dict["tun_num"] = 1
-
-    temp_r1, temp_r2 = create_vpn_config(src_template, dst_template, vpn_data_dict)
-    send_temp_r1 = temp_r1.split('\n')
-    send_temp_r2 = temp_r2.split('\n')
-
-#    print(send_temp_r1)
-    
-    output_src = send_config_commands(src_device_params, send_temp_r1)
-
-    output_dst = send_config_commands(dst_device_params, send_temp_r2)
-
-    return output_src, output_dst
 
 if __name__ == "__main__":
+    template1 = "templates/gre_ipsec_vpn_1.txt"
+    template2 = "templates/gre_ipsec_vpn_2.txt"
 
     data = {
         "tun_num": None,
@@ -123,15 +85,7 @@ if __name__ == "__main__":
         "tun_ip_2": "10.0.1.2 255.255.255.252",
     }
 
-    temp_file1 = "templates/gre_ipsec_vpn_1.txt"
-    temp_file2 = "templates/gre_ipsec_vpn_2.txt"
-
     with open("devices.yaml") as f:
         devices = yaml.safe_load(f)
-
-    src_params = devices[0]
-    dst_params = devices[1]
-
-
-    print(configure_vpn(src_params, dst_params, temp_file1, temp_file2, data))
-
+        r1, r2 = devices[:2]
+    configure_vpn(r1, r2, template1, template2, data)
