@@ -49,6 +49,31 @@ from netmiko import (
 from jinja2 import Environment, FileSystemLoader
 from task_20_5 import create_vpn_config
 
+def number_tunnel(spisok1, spisok2):
+    max1 = int(max(spisok1))
+    max2 = int(max(spisok2))
+    spisok_all = [item for item in range(1, max([max1, max2]) + 1)]
+    free_spisok = []
+    for item in spisok_all:
+        if (str(item) not in spisok1):
+            if (str(item) not in spisok2):
+                free_spisok.append(item)
+    if free_spisok:
+            count = min(free_spisok)
+    else:
+            count = max([max1, max2]) + 1
+    print(count)
+    return count
+
+def spisok_use_tunnel(spisok_intf):
+    spisok_tunnel = []
+    for item in spisok_intf:
+        if "Tunnel" in item:
+            reg_split = r'Tunnel(\d+)'
+            reg_search = re.search(reg_split, item)
+            spisok_tunnel.append(reg_search.group(1))
+    return spisok_tunnel
+
 def send_show_command(device, commands):
     result = {}
     try:
@@ -92,14 +117,10 @@ def configure_vpn(src_device_params, dst_device_params, src_template,
 #        print(dst_result)
     
 
-#    spisok_tunnel = []
-#    for item in src_result:
-#        if "Tunnel" in item:
-#            reg_split = r'Tunnel(\d+)'
-#            reg_search = re.search(reg_split, item)
-#            spisok_tunnel.append(reg_search(1))
+    src_tunnels = spisok_use_tunnel(src_result)
+    dst_tunnels = spisok_use_tunnel(dst_result)
 
-    vpn_data_dict["tun_num"] = 1
+    vpn_data_dict["tun_num"] = number_tunnel(src_tunnels, dst_tunnels)
 
     temp_r1, temp_r2 = create_vpn_config(src_template, dst_template, vpn_data_dict)
     send_temp_r1 = temp_r1.split('\n')
@@ -108,7 +129,6 @@ def configure_vpn(src_device_params, dst_device_params, src_template,
 #    print(send_temp_r1)
     
     output_src = send_config_commands(src_device_params, send_temp_r1)
-
     output_dst = send_config_commands(dst_device_params, send_temp_r2)
 
     return output_src, output_dst
