@@ -15,8 +15,15 @@
 и шаблоне templates/sh_ip_int_br.template.
 
 """
+import textfsm
 from netmiko import ConnectHandler
 
+def parse_command_output(template, command_output):
+    with open(template) as template:
+        fsm = textfsm.TextFSM(template)
+        result = fsm.ParseText(command_output)
+
+    return [fsm.header] + result
 
 # вызов функции должен выглядеть так
 if __name__ == "__main__":
