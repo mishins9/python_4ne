@@ -20,34 +20,22 @@
 
 Проверить работу функции на примере вывода команды sh ip int br.
 """
-import textfsm
 from textfsm import clitable
-from netmiko import ConnectHandler
+from pprint import pprint
 
 
-def parse_command_dynamic(command_output, attributes_dict, index_file="index",
-                          templ_path="templates"):
+def parse_command_dynamic(
+    command_output, attributes_dict, index_file="index", templ_path="templates"
+):
+
     cli_table = clitable.CliTable(index_file, templ_path)
     cli_table.ParseCmd(command_output, attributes_dict)
-    header = list(cli_table.header)
-    data_rows = [dict(zip(header, list(row))) for row in cli_table]
-    return data_rows
+    return [dict(zip(cli_table.header, row)) for row in cli_table]
+
 
 if __name__ == "__main__":
-
-    r1_params = {
-        "device_type": "cisco_ios",
-        "host": "192.168.100.1",
-        "username": "cisco",
-        "password": "cisco",
-        "secret": "cisco",
-    }
-
-    with ConnectHandler(**r1_params) as r1:
-        r1.enable()
-        output = r1.send_command("sh ip int br")
-
-    att_dict = {'Command': 'show ip interface brief', 'Vendor': 'cisco_ios'}
-
-    result = parse_command_dynamic(output, att_dict)
-    print(result)
+    attributes = {"Command": "show ip int br", "Vendor": "cisco_ios"}
+    with open("output/sh_ip_int_br.txt") as f:
+        command_output = f.read()
+    result = parse_command_dynamic(command_output, attributes)
+    pprint(result, width=100)
