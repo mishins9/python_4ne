@@ -51,51 +51,21 @@ In [13]: t.delete_link(('R5', 'Eth0/0'), ('R3', 'Eth0/2'))
 Такого соединения нет
 
 """
-
 class Topology:
     def __init__(self, topology_dict):
         self.topology = self._normalize(topology_dict)
 
     def _normalize(self, topology_dict):
-        slovar = {}
-        for key1, value1 in topology_dict.items():
-            if not slovar.get(key1) and not slovar.get(value1):
-                slovar[key1] = (value1)
-        return slovar
+        normalized_topology = {}
+        for box, neighbor in topology_dict.items():
+            if not neighbor in normalized_topology:
+                normalized_topology[box] = neighbor
+        return normalized_topology
 
-    def delete_link(self, one_pair, two_pair):
-        for key, value in list(self.topology.items()):
-            if  key == one_pair:
-                if value == two_pair:
-                    del self.topology[key]
-            elif  value == one_pair:
-                if key == two_pair:
-                    del self.topology[key]
-            else:
-                print("Такого соединения нет")
-
-
-
-
-if __name__ == "__main__":
-    topology_example = {
-        ("R1", "Eth0/0"): ("SW1", "Eth0/1"),
-        ("R2", "Eth0/0"): ("SW1", "Eth0/2"),
-        ("R2", "Eth0/1"): ("SW2", "Eth0/11"),
-        ("R3", "Eth0/0"): ("SW1", "Eth0/3"),
-        ("R3", "Eth0/1"): ("R4", "Eth0/0"),
-        ("R3", "Eth0/2"): ("R5", "Eth0/0"),
-        ("SW1", "Eth0/1"): ("R1", "Eth0/0"),
-        ("SW1", "Eth0/2"): ("R2", "Eth0/0"),
-        ("SW1", "Eth0/3"): ("R3", "Eth0/0"),
-    }
-
-    top = Topology(topology_example)
-    print(top.topology)
-    top.delete_link(('R5', 'Eth0/1'), ('R4', 'Eth0/0'))
-    print(top.topology)
-    top.delete_link(("R5", "Eth0/0"), ("R3", "Eth0/2"))
-    print(top.topology)
-    top.delete_link(("R3", "Eth0/2"), ("R5", "Eth0/0"))
-    print(top.topology)
-
+    def delete_link(self, from_port, to_port):
+        if self.topology.get(from_port) == to_port:
+            del self.topology[from_port]
+        elif self.topology.get(to_port) == from_port:
+            del self.topology[to_port]
+        else:
+            print("Такого соединения нет")
