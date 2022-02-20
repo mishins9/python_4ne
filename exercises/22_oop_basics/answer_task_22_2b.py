@@ -25,19 +25,28 @@ In [3]: r1 = CiscoTelnet(**r1_params)
 Использование метода send_config_commands:
 
 In [5]: r1.send_config_commands('logging 10.1.1.1')
-Out[5]: 'conf t\r\nEnter configuration commands, one per line.  End with CNTL/Z.\r\nR1(config)#logging 10.1.1.1\r\nR1(config)#end\r\nR1#'
+Out[5]: 'conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#logging 10.1.1.1
+R1(config)#end
+R1#'
 
 In [6]: r1.send_config_commands(['interface loop55', 'ip address 5.5.5.5 255.255.255.255'])
-Out[6]: 'conf t\r\nEnter configuration commands, one per line.  End with CNTL/Z.\r\nR1(config)#interface loop55\r\nR1(config-if)#ip address 5.5.5.5 255.255.255.255\r\nR1(config-if)#end\r\nR1#'
+Out[6]: 'conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#interface loop55
+R1(config-if)#ip address 5.5.5.5 255.255.255.255
+R1(config-if)#end
+R1#'
 
 """
-
-import telnetlib
 import time
+import telnetlib
+import yaml
 from textfsm import clitable
 
-class CiscoTelnet:
 
+class CiscoTelnet:
     def __init__(self, ip, username, password, secret):
         self.telnet = telnetlib.Telnet(ip)
         self.telnet.read_until(b"Username:")
@@ -54,9 +63,7 @@ class CiscoTelnet:
     def _write_line(self, line):
         self.telnet.write(line.encode("ascii") + b"\n")
 
- 
-    def send_show_command(self, command, parse="True", templates="templates",
-                          index="index"):
+    def send_show_command(self, command, parse=True, templates="templates"):
         self._write_line(command)
         time.sleep(1)
         command_output = self.telnet.read_very_eager().decode("ascii")
@@ -77,18 +84,17 @@ class CiscoTelnet:
         return self.telnet.read_very_eager().decode("ascii")
 
 
-
 if __name__ == "__main__":
-
     r1_params = {
-        'ip': '192.168.100.1',
-        'username': 'cisco',
-        'password': 'cisco',
-        'secret': 'cisco'}
-   
-
+        "ip": "192.168.100.1",
+        "username": "cisco",
+        "password": "cisco",
+        "secret": "cisco",
+    }
     r1 = CiscoTelnet(**r1_params)
-    print(r1.send_config_commands('logging 10.1.1.1'))
-    print(r1.send_config_commands(['interface loop55', 'ip address 5.5.5.5 255.255.255.255']))
-
-
+    print(r1.send_config_commands("logging 10.1.1.1"))
+    print(
+        r1.send_config_commands(
+            ["interface loop55", "ip address 5.5.5.5 255.255.255.255"]
+        )
+    )

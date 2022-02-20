@@ -44,19 +44,22 @@ Out[4]:
   'protocol': 'up'}]
 
 In [5]: r1.send_show_command("sh ip int br", parse=False)
-Out[5]: 'sh ip int br\r\nInterface                  IP-Address      OK? Method Status
-Protocol\r\nEthernet0/0                192.168.100.1   YES NVRAM  up
-up      \r\nEthernet0/1                192.168.200.1   YES NVRAM  up...'
+Out[5]: 'sh ip int br
+Interface                  IP-Address      OK? Method Status
+Protocol
+Ethernet0/0                192.168.100.1   YES NVRAM  up
+up      
+Ethernet0/1                192.168.200.1   YES NVRAM  up...'
 
 
 """
-
-import telnetlib
 import time
+import telnetlib
+import yaml
 from textfsm import clitable
 
-class CiscoTelnet:
 
+class CiscoTelnet:
     def __init__(self, ip, username, password, secret):
         self.telnet = telnetlib.Telnet(ip)
         self.telnet.read_until(b"Username:")
@@ -73,9 +76,7 @@ class CiscoTelnet:
     def _write_line(self, line):
         self.telnet.write(line.encode("ascii") + b"\n")
 
- 
-    def send_show_command(self, command, parse="True", templates="templates",
-                          index="index"):
+    def send_show_command(self, command, parse=True, templates="templates", index="index"):
         self._write_line(command)
         time.sleep(1)
         command_output = self.telnet.read_very_eager().decode("ascii")
@@ -88,16 +89,12 @@ class CiscoTelnet:
 
 
 if __name__ == "__main__":
-
     r1_params = {
-        'ip': '192.168.100.1',
-        'username': 'cisco',
-        'password': 'cisco',
-        'secret': 'cisco'}
-   
-
+        "ip": "192.168.100.1",
+        "username": "cisco",
+        "password": "cisco",
+        "secret": "cisco",
+    }
     r1 = CiscoTelnet(**r1_params)
     print(r1.send_show_command("sh ip int br"))
     print(r1.send_show_command("sh ip int br", parse=False))
-
-

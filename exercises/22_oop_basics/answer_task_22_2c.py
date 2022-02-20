@@ -63,14 +63,14 @@ ValueError                                Traceback (most recent call last)
 ValueError: При выполнении команды "logging 0255.255.1" на устройстве 192.168.100.1 возникла ошибка -> Invalid input detected at '^' marker.
 
 """
-
-import telnetlib
 import time
+import telnetlib
+import yaml
 from textfsm import clitable
 import re
 
-class CiscoTelnet:
 
+class CiscoTelnet:
     def __init__(self, ip, username, password, secret):
         self.ip = ip
         self.telnet = telnetlib.Telnet(ip)
@@ -88,9 +88,7 @@ class CiscoTelnet:
     def _write_line(self, line):
         self.telnet.write(line.encode("ascii") + b"\n")
 
- 
-    def send_show_command(self, command, parse="True", templates="templates",
-                          index="index"):
+    def send_show_command(self, command, parse=True, templates="templates"):
         self._write_line(command)
         time.sleep(1)
         command_output = self.telnet.read_very_eager().decode("ascii")
@@ -117,7 +115,6 @@ class CiscoTelnet:
             else:
                 print(message)
 
-
     def send_config_commands(self, commands, strict=True):
         output = ""
         if isinstance(commands, str):
@@ -132,24 +129,15 @@ class CiscoTelnet:
         self._write_line("end")
         time.sleep(1)
         output += self.telnet.read_very_eager().decode("ascii")
-        return output 
-
+        return output
 
 
 if __name__ == "__main__":
-
     r1_params = {
-        'ip': '192.168.100.1',
-        'username': 'cisco',
-        'password': 'cisco',
-        'secret': 'cisco'}
-   
-
+        "ip": "192.168.100.1",
+        "username": "cisco",
+        "password": "cisco",
+        "secret": "cisco",
+    }
     r1 = CiscoTelnet(**r1_params)
-
-    commands_with_errors = ['logging 0255.255.1', 'logging', 'a']
-    correct_commands = ['logging buffered 20010', 'ip http server']
-    commands = commands_with_errors+correct_commands
     print(r1.send_config_commands(commands, strict=False))
-    print(r1.send_config_commands(commands, strict=True))
-
