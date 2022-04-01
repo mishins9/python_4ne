@@ -43,3 +43,21 @@ In [6]: ip1 = IPAddress('10.1.1.1/240')
 ValueError: Incorrect mask
 
 """
+import re
+
+class IPAddress:
+    def __init__(self, ipaddress):
+        match = re.search(r'(\d+).(\d+).(\d+).(\d+)/(\d+)', ipaddress)
+        print(match.groups())
+        for i in range(1,5):
+            if int(match.group(i)) not in range(0,256):
+                raise ValueError("Incoreect IP address")
+        self.ip = ipaddress.split('/')[0]
+        if int(match.group(5)) in range(8,33):
+            self.mask = int(match.group(5))
+        else:
+            raise ValueError("Incorrect mask")
+
+if __name__ == "__main__":
+    ip1 = IPAddress('192.168.1.100/24')
+    print(ip1.ip, ip1.mask)
