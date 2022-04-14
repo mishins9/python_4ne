@@ -5,7 +5,6 @@ import yaml
 
 sw_filename = 'switches.yml'
 data_filename = ['sw1_dhcp_snooping.txt', 'sw2_dhcp_snooping.txt', 'sw3_dhcp_snooping.txt']
-#data_filename = 'sw1_dhcp_snooping.txt'
 db_filename = 'dhcp_snooping.db'
 regex = re.compile(r'(\S+) +(\S+) +\d+ +\S+ +(\d+) +(\S+)')
 
@@ -16,9 +15,10 @@ def search_data(data_f):
         for line in data:
             match = regex.search(line)
             if match:
-                sum_match = list(match.groups())
-                sum_match.append(data_switch)
-                result.append(tuple(sum_match))
+#                sum_match = list(match.groups())
+#                sum_match.append(data_switch)
+#                result.append(tuple(sum_match))
+                result.append(match.groups() + (data_switch,))
 
     return result
 
@@ -27,8 +27,8 @@ def add_switch(base, data):
     conn = sqlite3.connect(base)
     with open(data) as f:
         templates = yaml.safe_load(f)
-        list_keys = list(templates.keys())
-        slovar2 = templates[list_keys[0]]
+#        list_keys = list(templates.keys())
+        slovar2 = templates[list(templates.keys())[0]]
         for sw in slovar2:
             city, street = slovar2[sw].split(',')
             row = (sw, city, street.strip()) 
